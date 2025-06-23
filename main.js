@@ -4,22 +4,15 @@ const {
   serialize,
   makeStore,
   bindStore,
-  AnyMessageContent,
   useMultiFileAuthState,
-  makeCacheableSignalKeyStore,
   delay,
   DisconnectReason,
   fetchLatestBaileysVersion,
   generateForwardMessageContent,
   prepareWAMessageMedia,
-  MessageType,
-  MessageOptions,
-  Mimetype,
   generateWAMessageFromContent,
-  generateMessageID,
   downloadContentFromMessage,
   jidDecode,
-  jidNormalizedUser,
   proto,
   PHONENUMBER_MCC,
 } = require("@bagah/whatsapp-lib");
@@ -32,13 +25,8 @@ const spinnies = new (require("spinnies"))();
 const PhoneNumber = require("awesome-phonenumber");
 const fetch = require("node-fetch");
 const Exif = new (require("./function/lib/exif"))();
-const {
-  isUrl,
-  generateMessageTag,
-  getBuffer,
-  getSizeMedia,
-} = require("./function/lib/functions");
-// Inisialisasi store
+const { getBuffer, getSizeMedia } = require("./function/lib/functions");
+
 const store = makeStore({
   logger: pino().child({ level: "silent", stream: "store" }),
 });
@@ -89,7 +77,6 @@ async function startabot() {
         ? false
         : true,
     getMessage: async (key) => {
-      // Use store to get messages for quote/reply functionality
       if (store) {
         const msg = await store.loadMessage(key.remoteJid, key.id);
         return msg?.message || undefined;
@@ -123,7 +110,7 @@ async function startabot() {
 
   spinnies.add("start", {
     text: "Connecting . . .",
-  }); // Bind store to socket events for automatic message saving
+  });
   bindStore(store, abot);
 
   if (
@@ -153,6 +140,7 @@ async function startabot() {
       } catch {}
     }, 3000);
   }
+
   abot.ev.on("messages.upsert", async (chatUpdate) => {
     try {
       for (let mek of chatUpdate.messages) {
@@ -165,7 +153,7 @@ async function startabot() {
         if (!abot.public && !mek.key.fromMe && chatUpdate.type === "notify")
           return;
         if (mek.key.id && mek.key.id.length === 16) return;
-        if (mek.key.id.startsWith("3EB0") && mek.key.id.length === 12) return; // Use serialize function from @bagah/whatsapp-lib with correct parameters
+        if (mek.key.id.startsWith("3EB0") && mek.key.id.length === 12) return;
         var m = serialize(abot, mek);
         require("./function/case")(abot, m, chatUpdate, store);
       }
@@ -177,10 +165,8 @@ async function startabot() {
   abot.ev.process(async (events) => {
     if (events["messages.upsert"]) {
       const upsert = events["messages.upsert"];
-      //console.log(JSON.stringify(upsert, '', 2))
       for (let msg of upsert.messages) {
         if (msg.key.remoteJid === "status@broadcast") {
-          //console.log(JSON.stringify(upsert, '', 2))
           if (msg.message?.protocolMessage) return;
           console.log(
             `Lihat status ${msg.pushName} ${msg.key.participant.split("@")[0]}`
@@ -215,6 +201,7 @@ async function startabot() {
         store.contacts[id] = { id, name: contact.notify };
     }
   });
+
   abot.reply = (from, content, msg) =>
     abot.sendMessage(from, { text: content }, { quoted: msg });
   abot.getName = (jid, withoutContact = false) => {
