@@ -13,13 +13,9 @@ const {
 const pino = require("pino");
 const fs = require("fs");
 const chalk = require("chalk");
-const FileType = require("file-type");
-const path = require("path");
 const spinnies = new (require("spinnies"))();
 const PhoneNumber = require("awesome-phonenumber");
-const fetch = require("node-fetch");
-const Exif = new (require("./function/lib/exif"))();
-const { getBuffer, getSizeMedia } = require("./function/lib/functions");
+const { getBuffer } = require("./function/lib/functions");
 
 const store = makeStore({
   logger: pino().child({ level: "silent", stream: "store" }),
