@@ -171,26 +171,6 @@ module.exports = abot = async (abot, m) => {
       }
     }
 
-    const createSerial = (size) => {
-      return crypto.randomBytes(size).toString("hex").slice(0, size);
-    };
-
-    function randomNomor(min, max = null) {
-      if (max !== null) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-      } else {
-        return Math.floor(Math.random() * min) + 1;
-      }
-    }
-    function monospace(string) {
-      return "```" + string + "```";
-    }
-    const pickRandom = (arr) => {
-      return arr[Math.floor(Math.random() * arr.length)];
-    };
-
     //=================================================//
     var sticWait = () => {
       ano = fs.readFileSync("./function/image/wait.webp");
