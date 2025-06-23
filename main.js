@@ -1,6 +1,9 @@
 require("./config/setting");
 const {
-  default: makeWASocket,
+  createSocket,
+  serialize,
+  makeStore,
+  bindStore,
   AnyMessageContent,
   useMultiFileAuthState,
   makeCacheableSignalKeyStore,
@@ -15,12 +18,11 @@ const {
   generateWAMessageFromContent,
   generateMessageID,
   downloadContentFromMessage,
-  makeInMemoryStore,
   jidDecode,
   jidNormalizedUser,
   proto,
   PHONENUMBER_MCC,
-} = require("baileys");
+} = require("@bagah/whatsapp-lib");
 const pino = require("pino");
 const fs = require("fs");
 const chalk = require("chalk");
@@ -31,13 +33,13 @@ const PhoneNumber = require("awesome-phonenumber");
 const fetch = require("node-fetch");
 const Exif = new (require("./function/lib/exif"))();
 const {
-  smsg,
   isUrl,
   generateMessageTag,
   getBuffer,
   getSizeMedia,
 } = require("./function/lib/functions");
-const store = makeInMemoryStore({
+// Inisialisasi store
+const store = makeStore({
   logger: pino().child({ level: "silent", stream: "store" }),
 });
 
@@ -78,12 +80,22 @@ global.db.data = {
 async function startabot() {
   const { state, saveCreds } = await useMultiFileAuthState(global.sessionName);
   let { version, isLatest } = await fetchLatestBaileysVersion();
-  const abot = makeWASocket({
+  const options = {
+    auth: state,
+    version,
     logger: pino({ level: "silent" }),
     printQRInTerminal:
       config.pairing && config.pairing.state && config.pairing.number
         ? false
         : true,
+    getMessage: async (key) => {
+      // Use store to get messages for quote/reply functionality
+      if (store) {
+        const msg = await store.loadMessage(key.remoteJid, key.id);
+        return msg?.message || undefined;
+      }
+      return { conversation: "hello" };
+    },
     patchMessageBeforeSending: (message) => {
       const requiresPatch = !!(
         message.buttonsMessage ||
@@ -106,15 +118,13 @@ async function startabot() {
       return message;
     },
     browser: ["Mac OS", "Safari", "10.15.7"],
-    auth: state,
-    version,
-  });
+  };
+  const abot = createSocket(options);
 
   spinnies.add("start", {
     text: "Connecting . . .",
-  });
-
-  store.bind(abot.ev);
+  }); // Bind store to socket events for automatic message saving
+  bindStore(store, abot);
 
   if (
     config.pairing &&
@@ -143,7 +153,6 @@ async function startabot() {
       } catch {}
     }, 3000);
   }
-
   abot.ev.on("messages.upsert", async (chatUpdate) => {
     try {
       for (let mek of chatUpdate.messages) {
@@ -156,8 +165,8 @@ async function startabot() {
         if (!abot.public && !mek.key.fromMe && chatUpdate.type === "notify")
           return;
         if (mek.key.id && mek.key.id.length === 16) return;
-        if (mek.key.id.startsWith("3EB0") && mek.key.id.length === 12) return;
-        var m = smsg(abot, mek, store);
+        if (mek.key.id.startsWith("3EB0") && mek.key.id.length === 12) return; // Use serialize function from @bagah/whatsapp-lib with correct parameters
+        var m = serialize(abot, mek);
         require("./function/case")(abot, m, chatUpdate, store);
       }
     } catch (err) {
@@ -366,7 +375,7 @@ async function startabot() {
 
   abot.public = true;
 
-  abot.serializeM = (m) => smsg(abot, m, store);
+  abot.serializeM = (m) => serialize(m);
 
   abot.ev.on("connection.update", (update) => {
     const { connection, lastDisconnect } = update;
@@ -382,7 +391,6 @@ async function startabot() {
       });
     }
   });
-
   abot.send5ButGif = async (
     jid,
     text = "",
@@ -395,7 +403,7 @@ async function startabot() {
       { upload: abot.waUploadToServer }
     );
     const template = generateWAMessageFromContent(
-      m.chat,
+      jid,
       proto.Message.fromObject({
         templateMessage: {
           hydratedTemplate: {
@@ -410,7 +418,6 @@ async function startabot() {
     );
     abot.relayMessage(jid, template.message, { messageId: template.key.id });
   };
-
   abot.send5ButImg = async (
     jid,
     text = "",
@@ -424,7 +431,7 @@ async function startabot() {
       { upload: abot.waUploadToServer }
     );
     var template = generateWAMessageFromContent(
-      m.chat,
+      jid,
       proto.Message.fromObject({
         templateMessage: {
           hydratedTemplate: {
@@ -439,7 +446,6 @@ async function startabot() {
     );
     abot.relayMessage(jid, template.message, { messageId: template.key.id });
   };
-
   abot.send5ButVid = async (
     jid,
     text = "",
@@ -453,7 +459,7 @@ async function startabot() {
       { upload: abot.waUploadToServer }
     );
     var template = generateWAMessageFromContent(
-      m.chat,
+      jid,
       proto.Message.fromObject({
         templateMessage: {
           hydratedTemplate: {
@@ -468,7 +474,6 @@ async function startabot() {
     );
     abot.relayMessage(jid, template.message, { messageId: template.key.id });
   };
-
   abot.send5ButLoc = async (
     jid,
     text = "",
@@ -478,7 +483,7 @@ async function startabot() {
     options = {}
   ) => {
     var template = generateWAMessageFromContent(
-      m.chat,
+      jid,
       proto.Message.fromObject({
         templateMessage: {
           hydratedTemplate: {

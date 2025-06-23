@@ -4,7 +4,7 @@
  * Follow https://github.com/DikaArdnt
  */
 "use strict";
-const { proto, delay, getContentType } = require("baileys");
+const { proto, delay, getContentType } = require("@bagah/whatsapp-lib");
 const {
   default: _makeWaSocket,
   makeWALegacySocket,
@@ -14,7 +14,7 @@ const {
   generateForwardMessageContent,
   generateWAMessageFromContent,
   WAMessageStubType,
-} = require("@adiwajshing/baileys");
+} = require("@bagah/whatsapp-lib");
 const chalk = require("chalk");
 const fs = require("fs");
 const Crypto = require("crypto");

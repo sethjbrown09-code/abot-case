@@ -1,4 +1,4 @@
-const { proto, delay, getContentType } = require("baileys");
+const { proto, delay, getContentType } = require("@bagah/whatsapp-lib");
 const chalk = require("chalk");
 const fs = require("fs");
 const Crypto = require("crypto");
