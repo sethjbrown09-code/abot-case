@@ -33,7 +33,7 @@ global.nomorowner = "https://wa.me/628126915328";
 
 global.region = "I`m From Indonesia";
 global.prefa = ["", "!", ".", "#", "-", "•"];
-global.thumb = fs.readFileSync("./function/image/thumb.jpg");
+global.thumb = fs.readFileSync("./media/image/thumb.jpg");
 global.krmd = {
   success: "```Success✅```",
   admin: "```Fitur Khusus Admin Group!!!```",
