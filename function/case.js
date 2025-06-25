@@ -6,7 +6,7 @@ const { exec } = require("child_process");
 const axios = require("axios");
 const moment = require("moment-timezone");
 const Jimp = require("jimp");
-const { ytMP3, ytMP4 } = require("abot-scraper");
+const { tools } = require("abot-scraper");
 const util = require("util");
 const {
   runtime,
@@ -42,6 +42,28 @@ module.exports = abot = async (abot, m) => {
     const prefix = /^[°#*+,.?=''():√%!¢£¥€π¤ΠΦ_&`™©®Δ^βα¦|/\\©^]/.test(body)
       ? body.match(/^[°#*+,.?=''():√%¢£¥€π¤ΠΦ_&!`™©®Δ^βα¦|/\\©^]/gi)
       : ".";
+    const chath =
+      m.mtype === "conversation" && m.message.conversation
+        ? m.message.conversation
+        : m.mtype == "imageMessage" && m.message.imageMessage.caption
+        ? m.message.imageMessage.caption
+        : m.mtype == "documentMessage" && m.message.documentMessage.caption
+        ? m.message.documentMessage.caption
+        : m.mtype == "videoMessage" && m.message.videoMessage.caption
+        ? m.message.videoMessage.caption
+        : m.mtype == "extendedTextMessage" && m.message.extendedTextMessage.text
+        ? m.message.extendedTextMessage.text
+        : m.mtype == "buttonsResponseMessage" &&
+          m.message.buttonsResponseMessage.selectedButtonId
+        ? m.message.buttonsResponseMessage.selectedButtonId
+        : m.mtype == "templateButtonReplyMessage" &&
+          m.message.templateButtonReplyMessage.selectedId
+        ? m.message.templateButtonReplyMessage.selectedId
+        : m.mtype == "listResponseMessage"
+        ? m.message.listResponseMessage.singleSelectReply.selectedRowId
+        : m.mtype == "messageContextInfo"
+        ? m.message.listResponseMessage.singleSelectReply.selectedRowId
+        : "";
     const content = JSON.stringify(m.message);
     const { type, quotedMsg, mentioned, now, fromMe } = m;
     const isImage = type == "imageMessage";
@@ -171,39 +193,73 @@ module.exports = abot = async (abot, m) => {
       }
     }
 
+    const createSerial = (size) => {
+      return crypto.randomBytes(size).toString("hex").slice(0, size);
+    };
+
+    function randomNomor(min, max = null) {
+      if (max !== null) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      } else {
+        return Math.floor(Math.random() * min) + 1;
+      }
+    }
+    function monospace(string) {
+      return "```" + string + "```";
+    }
+
+    const pickRandom = (arr) => {
+      return arr[Math.floor(Math.random() * arr.length)];
+    };
+
     //=================================================//
     var sticWait = () => {
       ano = fs.readFileSync("./function/image/wait.webp");
-      abot.sendSticker(m.chat, ano, m, {
+      abot.sendImageAsSticker(m.chat, ano, m, {
         packname: global.packname,
         author: global.author,
       });
     };
-
     var sticAdmin = () => {
       ano = fs.readFileSync("./function/image/BotAdman.webp");
-      abot.sendSticker(m.chat, ano, m, {
+      abot.sendImageAsSticker(m.chat, ano, m, {
         packname: global.packname,
         author: global.author,
       });
     };
     var sticOwner = () => {
       ano = fs.readFileSync("./function/image/owner.webp");
-      abot.sendSticker(m.chat, ano, m, {
+      abot.sendImageAsSticker(m.chat, ano, m, {
+        packname: global.packname,
+        author: global.author,
+      });
+    };
+    var sticSukses = () => {
+      ano = fs.readFileSync("./function/image/SuksesCok.webp");
+      abot.sendImageAsSticker(m.chat, ano, m, {
+        packname: global.packname,
+        author: global.author,
+      });
+    };
+    var sticBanLu = (hehe) => {
+      ano = fs.readFileSync("./function/image/BanLu.webp");
+      abot.sendImageAsSticker(m.chat, ano, m, {
         packname: global.packname,
         author: global.author,
       });
     };
     var groupon = (hehe) => {
       ano = fs.readFileSync("./function/image/groupon.webp");
-      abot.sendSticker(m.chat, ano, m, {
+      abot.sendImageAsSticker(m.chat, ano, m, {
         packname: global.packname,
         author: global.author,
       });
     };
     var SiGroupadmin = (hehe) => {
       ano = fs.readFileSync("./function/image/SiGroupadmin.webp");
-      abot.sendSticker(m.chat, ano, m, {
+      abot.sendImageAsSticker(m.chat, ano, m, {
         packname: global.packname,
         author: global.author,
       });
@@ -246,6 +302,19 @@ module.exports = abot = async (abot, m) => {
           sendEphemeral: true,
         },
       },
+    };
+    const reply = (teks) => {
+      abot.sendMessage(
+        m.chat,
+        {
+          text: teks,
+          contextInfo: {
+            forwardingScore: 9999999,
+            isForwarded: true,
+          },
+        },
+        { quoted: repPy }
+      );
     };
 
     const repPy = {
@@ -292,12 +361,13 @@ module.exports = abot = async (abot, m) => {
         JSON.stringify(_db, null, 3)
       );
     };
+
     switch (command) {
       //================ Main Menu ==================//
 
       case "runtime":
         {
-          reply(` BOT AKTIF SELAMA : ${runtime(process.uptime())} `);
+          m.reply(` BOT AKTIF SELAMA : ${runtime(process.uptime())} `);
         }
         break;
 
@@ -368,10 +438,11 @@ module.exports = abot = async (abot, m) => {
   ⿻ !ytplay
   ⿻ !play
   ⿻ !randomwaifu
-    RUNTIME
+  
+  RUNTIME
   ${runtime(process.uptime())}
   `;
-          abot.reply(from, menu_nya, m);
+          abot.sendMessage(from, { text: menu_nya }, { quoted: m });
         }
         break;
 
@@ -393,10 +464,11 @@ module.exports = abot = async (abot, m) => {
    ⿻ !Tagall text
    ⿻ !S / Sticker
    ⿻ !Toimg
-    𝗥𝗨𝗡𝗧𝗜𝗠𝗘
+  
+  𝗥𝗨𝗡𝗧𝗜𝗠𝗘
   ${runtime(process.uptime())}
   `;
-          abot.reply(from, menu_nya, m);
+          abot.sendMessage(from, { text: menu_nya }, { quoted: m });
         }
         break;
 
@@ -410,7 +482,7 @@ module.exports = abot = async (abot, m) => {
           if (!quoted) throw "Reply Image";
           if (!/webp/.test(mime))
             throw `Balas sticker dengan caption *${prefix + command}*`;
-          let media = await abot.downloadMediaMessage(quoted);
+          let media = await abot.downloadAndSaveMediaMessage(quoted);
           let ran = await getRandom(".png");
           exec(`ffmpeg -i ${media} ${ran}`, (err) => {
             fs.unlinkSync(media);
@@ -424,7 +496,7 @@ module.exports = abot = async (abot, m) => {
 
       case "tts":
         {
-          if (!q) return reply(`Contoh:\n${prefix + command} hallo bro`);
+          if (!q) return m.reply(`Contoh:\n${prefix + command} hallo bro`);
           var tts = `https://saipulanuar.ga/api/text-to-audio/tts?text=${q}&idbahasa=id&apikey=jPHjZpQF`;
           abot.sendMessage(
             sender,
@@ -443,14 +515,14 @@ module.exports = abot = async (abot, m) => {
             throw `Kirim/Reply Image Dengan Caption ${prefix + command}`;
           sticWait(from);
           let { TelegraPh } = require("./lib/uploader");
-          let media = await abot.downloadMediaMessage(quoted);
+          let media = await abot.downloadAndSaveMediaMessage(quoted);
           let anu = await TelegraPh(media);
           try {
             abot.sendMessage(m.chat, {
               text: `${anu}\n\n 🖨️ Nih Link Nya`,
             });
           } catch (e) {
-            reply(
+            m.reply(
               `Mohon Maaf Kemungkinan Server Telegraph Sedang Eror\nCoba Lakukan Beberapa Menit Lagi`
             );
           }
@@ -486,7 +558,7 @@ module.exports = abot = async (abot, m) => {
       case "brat":
       case "sbrat":
         {
-          if (!text) return reply(`Kata katanya apa abangku?`);
+          if (!text) return m.reply(`Kata katanya apa abangku?`);
           var response = await axios.get(
             API("ryzendesu", "api/sticker/brat", { text: text }, ""),
             {
@@ -520,7 +592,7 @@ module.exports = abot = async (abot, m) => {
             });
           } else if (/video/.test(mime)) {
             if ((quoted.msg || quoted).seconds > 11)
-              return reply("Maksimal 10 detik!");
+              return m.reply("Maksimal 10 detik!");
             let media = await quoted.download();
             let encmedia = await abot.sendSticker(m.chat, media, m, {
               packname: global.packname,
@@ -614,8 +686,8 @@ module.exports = abot = async (abot, m) => {
 
       case "tagall":
         if (!isGroupAdmins && !isOwner) return sticAdmin(from);
-        if (!q) return m.reply(`Teks?`);
-        let teks_tagall = `══✪〘 *😎 Tag All* 〙✪══\n\n${q ? q : ""}\n\n`;
+        if (!q) return m.reply(`Teksnya apa?`);
+        let teks_tagall = `══✪〘 *Tag Semua* 〙✪══\n\n${q ? q : ""}\n\n`;
         for (let mem of participants) {
           teks_tagall += `⚘ @${mem.id.split("@")[0]}\n`;
         }
@@ -640,12 +712,10 @@ module.exports = abot = async (abot, m) => {
         {
           if (!m.isGroup) throw groupon(from);
           if (!isBotAdmins) throw SiGroupadmin(from);
-          let response = await abot.groupInviteCode(m.chat);
-          abot.sendText(
+          await abot.reply(
             m.chat,
-            `https://chat.whatsapp.com/${response}\n\nLink Group : ${groupMetadata.subject}`,
-            m,
-            { detectLink: true }
+            "https://chat.whatsapp.com/" + (await abot.groupInviteCode(m.chat)),
+            m
           );
         }
         break;
@@ -709,7 +779,10 @@ module.exports = abot = async (abot, m) => {
             return m.reply(
               `Kirim/Reply Image Dengan Caption ${prefix + command}`
             );
-          var medis = await abot.downloadMediaMessage(quoted);
+          var medis = await abot.downloadAndSaveMediaMessage(
+            quoted,
+            "ppbot.jpeg"
+          );
           if (args[0] == `/full`) {
             var { img } = await generateProfilePicture(medis);
             await abot.query({
