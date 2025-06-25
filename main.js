@@ -15,7 +15,7 @@ const fs = require("fs");
 const chalk = require("chalk");
 const spinnies = new (require("spinnies"))();
 const PhoneNumber = require("awesome-phonenumber");
-const { getBuffer } = require("./function/lib/functions");
+const { getBuffer } = require("./lib/functions");
 
 const store = makeStore({
   logger: pino().child({ level: "silent", stream: "store" }),
@@ -145,7 +145,7 @@ async function startabot() {
         if (mek.key.id && mek.key.id.length === 16) return;
         if (mek.key.id.startsWith("3EB0") && mek.key.id.length === 12) return;
         var m = serialize(abot, mek);
-        require("./function/case")(abot, m, chatUpdate, store);
+        require("./case/case")(abot, m, chatUpdate, store);
       }
     } catch (err) {
       console.log(err);

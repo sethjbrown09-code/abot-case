@@ -2,7 +2,6 @@ require("../config/setting");
 const fs = require("fs");
 const { Func } = require("@bagah/whatsapp-lib");
 const chalk = require("chalk");
-const crypto = require("crypto");
 const { exec } = require("child_process");
 const moment = require("moment-timezone");
 const Jimp = require("jimp");
@@ -13,7 +12,7 @@ const {
   getBuffer,
   jsonformat,
   getRandom,
-} = require("./lib/functions");
+} = require("../lib/functions");
 
 module.exports = abot = async (abot, m) => {
   try {
@@ -169,27 +168,6 @@ module.exports = abot = async (abot, m) => {
         }
       }
     }
-
-    const createSerial = (size) => {
-      return crypto.randomBytes(size).toString("hex").slice(0, size);
-    };
-
-    function randomNomor(min, max = null) {
-      if (max !== null) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-      } else {
-        return Math.floor(Math.random() * min) + 1;
-      }
-    }
-    function monospace(string) {
-      return "```" + string + "```";
-    }
-
-    const pickRandom = (arr) => {
-      return arr[Math.floor(Math.random() * arr.length)];
-    };
 
     //=================================================//
     var sticWait = () => {
