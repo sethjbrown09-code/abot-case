@@ -9,6 +9,7 @@ const {
   getRandom,
 } = require("../lib/functions");
 const moment = require("moment-timezone");
+const menuHelper = require("./menu-helper");
 
 module.exports = async (
   abot,
@@ -53,102 +54,97 @@ module.exports = async (
 
     case "menu":
       {
-        var menu_nya = `${ucapanWaktu} ${pushname}
-Info Bot
-🕓 Waktu : ${time2} WIB
+        const { message, categories } = menuHelper.generateMenu(
+          1,
+          prefix,
+          pushname,
+          time2,
+          tanggal,
+          runtime(process.uptime()),
+          ucapanWaktu
+        );
+
+        abot.sendList(
+          m.chat,
+          "",
+          message,
+          "🤖 abot",
+          "📋 Pilih Menu",
+          [
+            {
+              rows: categories,
+            },
+          ],
+          m
+        );
+      }
+      break;
+
+    case "menutype":
+      {
+        if (!text) {
+          return m.reply("❌ Kategori tidak ditemukan!");
+        }
+
+        const categoryMenu = menuHelper.generateCategoryMenu(
+          text.toLowerCase(),
+          1,
+          prefix
+        );
+
+        if (!categoryMenu) {
+          return m.reply("❌ Kategori tidak ditemukan!");
+        }
+
+        m.reply(categoryMenu);
+      }
+      break;
+
+    case "allmenu":
+      {
+        const allCommands = menuHelper.detectCommands();
+        let fullMenu = `${ucapanWaktu} ${pushname}
+
+🤖 *BOT INFORMATION*
+🕓 Waktu : ${time2} WIB  
 🗓️ Tanggal : ${tanggal}
 ⏱️ Runtime : ${runtime(process.uptime())}
+📊 Total Commands : ${allCommands.length}
 
-- Subs Yt : @aldevvv
+📋 *SEMUA MENU*\n`;
 
-Jangan Lupa Donasi Kepada Bot
+        Object.entries(menuHelper.commandCategories).forEach(
+          ([key, category]) => {
+            const availableCommands = category.commands.filter((cmd) =>
+              allCommands.includes(cmd)
+            );
 
-MAIN MENU
-⿻ !runtime
-⿻ !menu 
-⿻ !allmenu
-⿻ !groupmenu
+            if (availableCommands.length > 0) {
+              fullMenu += `\n${
+                category.icon
+              } *${category.name.toUpperCase()}*\n`;
+              fullMenu +=
+                availableCommands
+                  .sort()
+                  .map((cmd) => `   ◦ ${prefix}${cmd}`)
+                  .join("\n") + "\n";
+            }
+          }
+        );
 
-AI MENU
-⿻ !ai
-⿻ !gemini
-⿻ !remini
-⿻ !blackbox
-
-MAKER MENU
-⿻ !toimg
-⿻ !tts
-⿻ !tourl / url
-⿻ !sticker / s / stickergif /sgif
-
-GROUP MENU
-⿻ !Gc o/c
-⿻ !promote
-⿻ !demote
-⿻ !Revoke/R
-⿻ !Lgc 
-⿻ !k/kick @
-⿻ !Hidetag/tag
-⿻ !Antilink
-⿻ !Tagall text
-
-Owner Menu
-⿻ !soff
-⿻ !soon
-⿻ !setppbot
-⿻ !addprem
-⿻ !delprem
-⿻ !listprem
-
-Downloader Menu
-⿻ !couple
-⿻ !ytmp3
-⿻ !ytmp4
-⿻ !twittervideo
-⿻ !ttnwm
-⿻ !tiktok
-⿻ !ttmp3
-⿻ !quotesanime
-⿻ !facebokdl
-⿻ !igdl
-
-Search Menu
-⿻ !wikimedia
-⿻ !tiktokstalk
-⿻ !ytplay
-⿻ !play
-⿻ !randomwaifu
-
-RUNTIME
-${runtime(process.uptime())}
-`;
-        abot.sendMessage(from, { text: menu_nya }, { quoted: m });
+        fullMenu += "\n© abot - WhatsApp Bot";
+        abot.sendMessage(m.chat, { text: fullMenu }, { quoted: m });
       }
       break;
 
     case "groupmenu":
       {
-        const more = String.fromCharCode(8206);
-        const readmore = more.repeat(4001);
-        var footer_nya = `© abot`;
-        var menu_nya = `Halo ${m.pushName} 
- 𝗚𝗥𝗢𝗨𝗣 𝗠𝗘𝗡𝗨 
- ⿻ !Gc o/c
- ⿻ !Revoke/R
- ⿻ !Lgc 
- ⿻ !k/kick @
- ⿻ !Add 628xx
- ⿻ !Hidetag/tag
- ⿻ !block @
- ⿻ !unblock @
- ⿻ !Tagall text
- ⿻ !S / Sticker
- ⿻ !Toimg
-
-𝗥𝗨𝗡𝗧𝗜𝗠𝗘
-${runtime(process.uptime())}
-`;
-        abot.sendMessage(from, { text: menu_nya }, { quoted: m });
+        const groupMenu = menuHelper.generateCategoryMenu("group", 3, prefix);
+        abot.sendMessage(
+          m.chat,
+          { text: groupMenu + `\n\n𝗥𝗨𝗡𝗧𝗜𝗠𝗘\n${runtime(process.uptime())}` },
+          { quoted: m }
+        );
       }
       break;
 

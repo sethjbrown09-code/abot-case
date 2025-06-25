@@ -293,6 +293,58 @@ module.exports = abot = async (abot, m) => {
 
     const commandHandler = require("./command");
     const aiCommandHandler = require("./ai-commands");
+    const gameCommandHandler = require("./game-commands");
+
+    // Handle game responses (jika ada game yang sedang berjalan)
+    if (global.game && global.game[m.chat] && !isCmd) {
+      const currentGame = global.game[m.chat];
+
+      switch (currentGame.type) {
+        case "tebakkata":
+          if (budy.toLowerCase() === currentGame.answer) {
+            clearTimeout(currentGame.timeout);
+            delete global.game[m.chat];
+            m.reply("🎉 Benar! Jawabannya memang: " + currentGame.answer);
+          } else {
+            m.reply("❌ Salah! Coba lagi...");
+          }
+          return; // Stop processing other messages
+
+        case "tebakangka":
+          const userNum = parseInt(budy);
+          if (!isNaN(userNum)) {
+            currentGame.attempts++;
+            if (userNum === currentGame.answer) {
+              clearTimeout(currentGame.timeout);
+              delete global.game[m.chat];
+              m.reply(
+                `🎯 Benar! Angkanya ${currentGame.answer}\nPercobaan: ${currentGame.attempts}x`
+              );
+            } else if (userNum < currentGame.answer) {
+              m.reply(
+                `📈 Terlalu kecil! Coba angka yang lebih besar (Percobaan: ${currentGame.attempts})`
+              );
+            } else {
+              m.reply(
+                `📉 Terlalu besar! Coba angka yang lebih kecil (Percobaan: ${currentGame.attempts})`
+              );
+            }
+          }
+          return;
+
+        case "caklontong":
+          if (budy.toLowerCase() === "hint") {
+            m.reply(`💡 Hint: ${currentGame.hint}`);
+          } else if (budy.toLowerCase().includes(currentGame.answer)) {
+            clearTimeout(currentGame.timeout);
+            delete global.game[m.chat];
+            m.reply("🧠 Benar! Jawabannya memang: " + currentGame.answer);
+          } else {
+            m.reply("🤔 Belum tepat! Coba lagi atau ketik 'hint' untuk clue");
+          }
+          return;
+      }
+    }
 
     if (isCmd) {
       let commandResult = await commandHandler(abot, m, {
@@ -340,7 +392,22 @@ module.exports = abot = async (abot, m) => {
       }
 
       if (!commandResult) {
-        console.log(`Unknown command: ${command}`);
+        commandResult = await gameCommandHandler(abot, m, {
+          command,
+          args,
+          text,
+          quoted,
+          mime,
+          from,
+          pushname,
+          isCreator,
+          prefix,
+          q,
+        });
+      }
+
+      if (!commandResult) {
+        // console.log(`Unknown command: ${command}`);
       }
     }
     if (budy.startsWith(">")) {
