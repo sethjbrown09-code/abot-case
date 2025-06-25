@@ -911,7 +911,7 @@ module.exports = abot = async (abot, m) => {
             throw `Example : ${
               prefix + command
             } https://www.facebook.com/UstazAzharIdrusFansClub/videos/813224618838631`;
-          var json = await downloader.facebook(q);
+          let json = await downloader.facebook(q);
           if (!json.status) throw `Fitur Sedang Error`;
           try {
             abot
@@ -931,96 +931,6 @@ module.exports = abot = async (abot, m) => {
           } catch (e) {
             m.reply(`Fiture sedang error`);
           }
-        }
-        break;
-
-      case "igdl":
-      case "ig":
-        {
-          if (!q)
-            throw `Example : ${
-              prefix + command
-            } https://www.instagram.com/p/CK0tLXyAzEI`;
-          m.reply(`_Waitt... ⏳_`);
-          var response = await fetch(
-            API("betabotz", "tools/instagramdl", { url: q }, "")
-          );
-          var json = await response.json();
-          try {
-            abot.sendMessage(
-              m.chat,
-              {
-                video: { url: json.result[0]._url },
-                caption: "done",
-              },
-              { quoted: m }
-            );
-          } catch (e) {
-            m.reply(`Fiture sedang error`);
-          }
-        }
-        break;
-
-      case "youtubevidio":
-      case "ytmp4":
-        try {
-          if (!text)
-            return m.reply(
-              `Example : ${prefix + command} https://youtu.be/3hXbjp-FcTc`
-            );
-          if (text.includes("https://youtu.be/")) {
-            var link = args[0];
-          } else if (text.includes("https://youtube.com/")) {
-            var link = args[0];
-          } else if (text.includes("https://www.youtube.com/")) {
-            var link = args[0];
-          } else m.reply("Error Link");
-          let json = await ytMP4(link);
-          let caption = `
-          ⭔ Judul : ${json.result.title}
-          ⭔ Size : ${json?.result.size}`;
-          abot.sendMessage(
-            m.chat,
-            {
-              video: { url: json.result.link },
-              caption: caption,
-            },
-            { quoted: m }
-          );
-        } catch {
-          m.reply(
-            "Maaf Kak Fitur Sedang Error Silahkan Chat Owner Agar Segera Di Perbaiki"
-          );
-        }
-        break;
-
-      case "youtubeaudio":
-      case "ytmp3":
-        try {
-          if (!text)
-            return m.reply(
-              `Example : ${prefix + command} https://youtu.be/3hXbjp-FcTc`
-            );
-          if (text.includes("https://youtu.be/")) {
-            var link = args[0];
-          } else if (text.includes("https://youtube.com/")) {
-            var link = args[0];
-          } else if (text.includes("https://www.youtube.com/")) {
-            var link = args[0];
-          } else m.reply("Error Link");
-          let json = await ytMP3(link);
-          abot.sendMessage(
-            m.chat,
-            {
-              audio: { url: json.result.link },
-              mimetype: "audio/mp4",
-            },
-            { quoted: m }
-          );
-        } catch {
-          m.reply(
-            "Maaf Kak Fitur Sedang Error Silahkan Chat Owner Agar Segera Di Perbaiki"
-          );
         }
         break;
 
