@@ -31,9 +31,6 @@ global.keyopenai = "ISI_APIKEY_OPENAI_DISINI";
 global.keyopenai = "2d2703d1";
 global.nomorowner = "https://wa.me/628126915328";
 
-// Scrap Lib
-global.scrap = new (require("../function/lib/lib.scrap.js"))();
-
 global.region = "I`m From Indonesia";
 global.prefa = ["", "!", ".", "#", "-", "•"];
 global.thumb = fs.readFileSync("./function/image/thumb.jpg");
