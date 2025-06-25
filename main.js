@@ -6,6 +6,7 @@ const {
   bindStore,
   useMultiFileAuthState,
   delay,
+  Func,
   DisconnectReason,
   fetchLatestBaileysVersion,
   PHONENUMBER_MCC,
@@ -14,8 +15,6 @@ const pino = require("pino");
 const fs = require("fs");
 const chalk = require("chalk");
 const spinnies = new (require("spinnies"))();
-const PhoneNumber = require("awesome-phonenumber");
-const { getBuffer } = require("./lib/functions");
 
 const store = makeStore({
   logger: pino().child({ level: "silent", stream: "store" }),
@@ -199,11 +198,11 @@ async function startabot() {
       };
 
       try {
-        var pic = await getBuffer(
+        var pic = await Func.fetchBuffer(
           await abot.profilePictureUrl(member, "image")
         );
       } catch {
-        var pic = await getBuffer(
+        var pic = await Func.fetchBuffer(
           await abot.profilePictureUrl(room.id, "image")
         );
       }
