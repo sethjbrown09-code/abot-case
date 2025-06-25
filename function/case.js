@@ -4,14 +4,12 @@ const { Func } = require("@bagah/whatsapp-lib");
 const chalk = require("chalk");
 const crypto = require("crypto");
 const { exec } = require("child_process");
-const axios = require("axios");
 const moment = require("moment-timezone");
 const Jimp = require("jimp");
 const { tools, downloader } = require("abot-scraper");
 const util = require("util");
 const {
   runtime,
-  fetchJson,
   getBuffer,
   jsonformat,
   getRandom,
@@ -495,18 +493,6 @@ module.exports = abot = async (abot, m) => {
         }
         break;
 
-      case "tts":
-        {
-          if (!q) return m.reply(`Contoh:\n${prefix + command} hallo bro`);
-          var tts = `https://saipulanuar.ga/api/text-to-audio/tts?text=${q}&idbahasa=id&apikey=jPHjZpQF`;
-          abot.sendMessage(
-            sender,
-            { audio: { url: tts }, mimetype: "audio/mpeg", ptt: true },
-            { quoted: m }
-          );
-        }
-        break;
-
       case "url":
       case "tourl":
         {
@@ -553,28 +539,6 @@ module.exports = abot = async (abot, m) => {
               `Kirim/reply image dengan caption ${prefix + command} text1|text2`
             );
           }
-        }
-        break;
-
-      case "brat":
-      case "sbrat":
-        {
-          if (!text) return m.reply(`Kata katanya apa abangku?`);
-          var response = await axios.get(
-            API("ryzendesu", "api/sticker/brat", { text: text }, ""),
-            {
-              responseType: "arraybuffer",
-              headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, seperti Gecko) Chrome/58.0.3029.110 Safari/537.3",
-              },
-            }
-          );
-          var buffer = Buffer.from(response.data, "binary");
-          await abot.sendSticker(m.chat, buffer, m, {
-            packname: global.packname,
-            author: global.author,
-          });
         }
         break;
 
@@ -948,17 +912,8 @@ module.exports = abot = async (abot, m) => {
           } else if (text.includes("https://www.tiktok.com/")) {
             var link = args[0];
           } else m.reply("Error Link");
-          let json = await fetchJson(
-            `https://api.tiklydown.me/api/download?url=${text}`
-          );
-          abot.sendMessage(
-            m.chat,
-            {
-              audio: { url: json?.music?.play_url },
-              mimetype: "audio/mp4",
-            },
-            { quoted: m }
-          );
+          let json = await downloader.tiktokDownloader(link);
+          abot.sendFile(m.chat, json.result.audio, "audio.mp3", "", m);
         } catch {
           m.reply(
             "Maaf Kak Fitur Sedang Error Silahkan Chat Owner Agar Segera Di Perbaiki"
@@ -967,239 +922,6 @@ module.exports = abot = async (abot, m) => {
         break;
 
       //================ Downloader Menu ===============//
-
-      //================ Search Menu ===============//
-
-      case "wikimedia":
-        {
-          if (!quoted) throw `*Ngetik Yg Bener Dek!!* ${prefix + command}`;
-          sticWait(from);
-          if (!text) throw "Masukkan Query Title";
-          let { wikimedia } = require("./lib/scraper");
-          anu = await wikimedia(text);
-          result = anu[Math.floor(Math.random() * anu.length)];
-          let caption = `⭔ Title : ${result.title}\n⭔ Source : ${result.source}\n⭔ Media Url : ${result.image}`;
-          abot.sendMessage(
-            m.chat,
-            { image: { url: result.image }, caption: caption },
-            { quoted: m }
-          );
-        }
-        break;
-
-      case "randomwaifu":
-        {
-          var response = await fetch(
-            API("ryzendesu", "api/weebs/sfw-waifu", ""),
-            {
-              headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-              },
-            }
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          var contentType = response.headers.get("content-type");
-          if (!contentType || !contentType.includes("application/json")) {
-            throw new Error("Respon bukan JSON");
-          }
-          var json = await response.json();
-          abot.sendMessage(
-            m.chat,
-            { image: { url: json.url }, caption: "ini dia waifunya banh" },
-            { quoted: m }
-          );
-        }
-        break;
-
-      case "pinterest":
-        {
-          if (!text) return m.reply(`Kata katanya apa abangku?`);
-          var response = await fetch(
-            API("ryzendesu", "api/search/pinterest", { query: text }, ""),
-            {
-              headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-              },
-            }
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          var contentType = response.headers.get("content-type");
-          if (!contentType || !contentType.includes("application/json")) {
-            throw new Error("Respon bukan JSON");
-          }
-          var json = await response.json();
-          if (json.length < 3) {
-            m.reply(`Gambar hanya ditemukan ${json.length} hasil.`);
-          } else {
-            for (let i = 0; i < 3; i++) {
-              abot.sendMessage(
-                m.chat,
-                { image: { url: json[i] }, caption: `Hasil ${i + 1}` },
-                { quoted: m }
-              );
-            }
-          }
-        }
-        break;
-
-      case "tiktokstalk":
-        {
-          if (!quoted) throw `*Ngetik yang bener dek !! * ${prefix + command}`;
-          sticWait(from);
-          if (!text) throw "Masukan username tiktok";
-          let tt = await axios.get(
-            `https://sh.xznsenpai.xyz/api/ttstalk?user=${text}`
-          );
-          let hasil = `
-        Tiktok Stalker
-
-        Username : ${tt.uniqueId}
-        Name     : ${tt.nickname}
-        Follower : ${tt.followerCount}
-        Following : ${tt.followingCount}
-        Rata rata dividio disukai ; ${tt.heart}
-        Vidio pada akun tersebut : ${tt.videoCount}
-        `;
-          abot.sendMessage(m.chat, hasil, { quoted: m });
-        }
-        break;
-      //================ Search Menu ===============//
-      //================ Ai Menu ===============//
-
-      case "ai":
-        try {
-          if (!quoted)
-            return m.reply(
-              `Chattingan dengan AI.\nTanyakan apa saja kepada ai dengan cara penggunaan \n\nContoh : ${prefix}${command} tolong berikan motivasi cinta`
-            );
-          if (!text)
-            return m.reply(
-              `Chattingan dengan AI.\nTanyakan apa saja kepada ai dengan cara penggunaan \n\nContoh : ${prefix}${command} tolong berikan motivasi cinta`
-            );
-          var response = await fetch(
-            API("betabotz", "tools/openai", { q: text }, "")
-          );
-          var json = await response.json();
-          if (json.status != 200) return m.reply("Ai tidak dapat merespon");
-          m.reply(`${json.result}`);
-        } catch (error) {
-          m.reply("Maaf, sepertinya ada yang error :" + error.message);
-        }
-        break;
-
-      case "gemini":
-        try {
-          if (!quoted) {
-            return m.reply(
-              `Chattingan dengan AI Gemini.\nTanyakan apa saja kepada ai dengan cara penggunaan \n\nContoh : ${prefix}${command} tolong berikan motivasi cinta`
-            );
-          }
-          if (!text)
-            return m.reply(
-              `Chattingan dengan AI.\nTanyakan apa saja kepada ai dengan cara penggunaan \n\nContoh : ${prefix}${command} tolong berikan motivasi cinta`
-            );
-          var response = await fetch(
-            API("ryzendesu", "api/ai/gemini", { text: text }, ""),
-            {
-              headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-              },
-            }
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          var contentType = response.headers.get("content-type");
-          if (!contentType || !contentType.includes("application/json")) {
-            throw new Error("Respon bukan JSON");
-          }
-          var json = await response.json();
-          m.reply(`${json.answer}`);
-        } catch (error) {
-          m.reply("Maaf, sepertinya ada yang error: " + error.message);
-        }
-        break;
-
-      case "blackbox":
-        try {
-          if (!quoted) {
-            return m.reply(
-              `Chattingan dengan AI Blacbox.\nTanyakan apa saja kepada ai dengan cara penggunaan \n\nContoh : ${prefix}${command} tolong berikan motivasi cinta`
-            );
-          }
-          if (!text)
-            return m.reply(
-              `Chattingan dengan AI.\nTanyakan apa saja kepada ai dengan cara penggunaan \n\nContoh : ${prefix}${command} tolong berikan motivasi cinta`
-            );
-          var response = await fetch(
-            API(
-              "ryzendesu",
-              "api/ai/blackbox",
-              { chat: text, options: "gpt-4o" },
-              ""
-            ),
-            {
-              headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-              },
-            }
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          var contentType = response.headers.get("content-type");
-          if (!contentType || !contentType.includes("application/json")) {
-            throw new Error("Respon bukan JSON");
-          }
-          var json = await response.json();
-          m.reply(`${json.response}`);
-        } catch (error) {
-          m.reply("Maaf, sepertinya ada yang error: " + error.message);
-        }
-        break;
-
-      case "remini":
-        {
-          if (!/webp/.test(mime) && /image/.test(mime)) {
-            mee = await quoted.download();
-            mem = await scrap.uploadImageV2(mee);
-            var response = await axios.get(
-              API(
-                "ryzendesu",
-                "api/ai/remini",
-                { url: mem.data.url, method: "enhance" },
-                ""
-              ),
-              {
-                responseType: "arraybuffer",
-                headers: {
-                  "User-Agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, seperti Gecko) Chrome/58.0.3029.110 Safari/537.3",
-                },
-              }
-            );
-            if (response.status !== 200) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            var buffer = Buffer.from(response.data, "binary");
-            abot.sendMessage(from, { image: buffer }, { quoted: m });
-          } else {
-            reply(
-              `Kirim/reply image dengan caption ${prefix + command} text1|text2`
-            );
-          }
-        }
-        break;
-
-      //================ Ai Menu ===============//
 
       default:
     }
