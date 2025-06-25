@@ -41,28 +41,6 @@ module.exports = abot = async (abot, m) => {
     const prefix = /^[°#*+,.?=''():√%!¢£¥€π¤ΠΦ_&`™©®Δ^βα¦|/\\©^]/.test(body)
       ? body.match(/^[°#*+,.?=''():√%¢£¥€π¤ΠΦ_&!`™©®Δ^βα¦|/\\©^]/gi)
       : ".";
-    const chath =
-      m.mtype === "conversation" && m.message.conversation
-        ? m.message.conversation
-        : m.mtype == "imageMessage" && m.message.imageMessage.caption
-        ? m.message.imageMessage.caption
-        : m.mtype == "documentMessage" && m.message.documentMessage.caption
-        ? m.message.documentMessage.caption
-        : m.mtype == "videoMessage" && m.message.videoMessage.caption
-        ? m.message.videoMessage.caption
-        : m.mtype == "extendedTextMessage" && m.message.extendedTextMessage.text
-        ? m.message.extendedTextMessage.text
-        : m.mtype == "buttonsResponseMessage" &&
-          m.message.buttonsResponseMessage.selectedButtonId
-        ? m.message.buttonsResponseMessage.selectedButtonId
-        : m.mtype == "templateButtonReplyMessage" &&
-          m.message.templateButtonReplyMessage.selectedId
-        ? m.message.templateButtonReplyMessage.selectedId
-        : m.mtype == "listResponseMessage"
-        ? m.message.listResponseMessage.singleSelectReply.selectedRowId
-        : m.mtype == "messageContextInfo"
-        ? m.message.listResponseMessage.singleSelectReply.selectedRowId
-        : "";
     const content = JSON.stringify(m.message);
     const { type, quotedMsg, mentioned, now, fromMe } = m;
     const isImage = type == "imageMessage";
