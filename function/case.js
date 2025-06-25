@@ -1,6 +1,6 @@
 require("../config/setting");
 const fs = require("fs");
-const { BotUtils } = require("@bagah/whatsapp-lib");
+const { Func } = require("@bagah/whatsapp-lib");
 const chalk = require("chalk");
 const crypto = require("crypto");
 const { exec } = require("child_process");
@@ -871,13 +871,16 @@ module.exports = abot = async (abot, m) => {
 
       case "couple":
         {
-          let anu = await fetchJson(
+          let result = await Func.fetchJson(
             "https://raw.githubusercontent.com/iamriz7/kopel_/main/kopel.json"
           );
-          let random = anu[Math.floor(Math.random() * anu.length)];
-          abot.sendFile(m.chat, random.male, "", `Couple Male`, m);
-          abot.sendFile(m.chat, random.female, "", `Couple Female`, m);
-          BotUtils.delay(2000);
+
+          for (let i = 0; i < 3; i++) {
+            let random = result[Math.floor(Math.random() * result.length)];
+            abot.sendFile(m.chat, random.male, "", `Couple Male`, m);
+            abot.sendFile(m.chat, random.female, "", `Couple Female`, m);
+            Func.delay(2000);
+          }
         }
         break;
 
