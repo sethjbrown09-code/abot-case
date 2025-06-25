@@ -7,7 +7,7 @@ const { exec } = require("child_process");
 const axios = require("axios");
 const moment = require("moment-timezone");
 const Jimp = require("jimp");
-const { tools } = require("abot-scraper");
+const { tools, downloader } = require("abot-scraper");
 const util = require("util");
 const {
   runtime,
@@ -885,36 +885,19 @@ module.exports = abot = async (abot, m) => {
         break;
 
       case "ttnwm":
+      case "tiktoknowm":
+      case "tt":
         {
           if (!text)
             throw `Example : ${
               prefix + command
             } https://vt.tiktok.com/ZSwWCk5o/`;
-          m.reply(`Waiting...`);
-          let json = await fetchJson(
-            `https://api.tiklydown.eu.org/api/download?url=${text}`
-          );
+          let json = await downloader.tiktokDownloader(text);
+          if (!json.status) throw `Fitur Sedang Error`;
           try {
-            let caption = `
-            ⭔ ID : ${json?.id}
-            ⭔ Title : ${json?.title}
-            ⭔ Created At : ${json?.created_at}
-            ⭔ Comment : ${json?.stats?.commentCount}
-            ⭔ Shared : ${json?.stats?.shareCount}
-            ⭔ Watched : ${json?.stats?.playCount}
-            ⭔ Saved : ${json?.stats?.saveCount}
-            ⭔ Duration : ${json?.video?.durationFormatted}
-            ⭔ Quality Video : ${json?.video?.ratio}
-            ⭔ Audio Title : ${json?.music?.title}
-            ⭔ Audio Author : ${json?.music?.author}`;
-            abot.sendMessage(
-              m.chat,
-              {
-                video: { url: json?.video?.noWatermark },
-                caption: caption,
-              },
-              { quoted: m }
-            );
+            let caption = `乂  *T I K T O K*\n\n`;
+            caption += `	◦  *Caption* : ${json.result.title || "-"}\n`;
+            abot.sendFile(m.chat, json.result.video, "video.mp4", caption, m);
           } catch (e) {
             m.reply(`Url Invalid`);
           }
@@ -928,20 +911,23 @@ module.exports = abot = async (abot, m) => {
             throw `Example : ${
               prefix + command
             } https://www.facebook.com/UstazAzharIdrusFansClub/videos/813224618838631`;
-          m.reply(`_Waitt... ⏳_`);
-          var response = await fetch(
-            API("betabotz", "tools/facebookdl", { url: q }, "")
-          );
-          var json = await response.json();
+          var json = await downloader.facebook(q);
+          if (!json.status) throw `Fitur Sedang Error`;
           try {
-            abot.sendMessage(
-              m.chat,
-              {
-                video: { url: json.result.HD },
-                caption: "done",
-              },
-              { quoted: m }
-            );
+            abot
+              .sendMessageModify(m.chat, "nih", m, {
+                largeThumb: true,
+                thumbnail: await Func.fetchBuffer(json.result.thumbnail),
+              })
+              .then(async () => {
+                await abot.sendFile(
+                  m.chat,
+                  json.result.videoUrl,
+                  "video.mp4",
+                  "",
+                  m
+                );
+              });
           } catch (e) {
             m.reply(`Fiture sedang error`);
           }
@@ -972,38 +958,6 @@ module.exports = abot = async (abot, m) => {
           } catch (e) {
             m.reply(`Fiture sedang error`);
           }
-        }
-        break;
-
-      case "twittervideo":
-      case "twtdl":
-        try {
-          if (!text)
-            return m.reply(
-              `Example : ${
-                prefix + command
-              } https://twitter.com/faqeeyaaz/status/1242789155173617664?s=20&t=DRgdl9U8MwTwpY0o1o-96g`
-            );
-          if (text.includes("https://twitter.com/")) {
-            var link = args[0];
-          } else m.reply("Error Link");
-
-          var response = await fetch(
-            API("betabotz", "tools/twitterdl", { url: link }, "")
-          );
-          var json = await response.json();
-          abot.sendMessage(
-            m.chat,
-            {
-              video: { url: json.result.mediaURLs[0] },
-              caption: "done",
-            },
-            { quoted: m }
-          );
-        } catch {
-          m.reply(
-            "Maaf Kak Fitur Sedang Error Silahkan Chat Owner Agar Segera Di Perbaiki"
-          );
         }
         break;
 
@@ -1099,17 +1053,6 @@ module.exports = abot = async (abot, m) => {
           m.reply(
             "Maaf Kak Fitur Sedang Error Silahkan Chat Owner Agar Segera Di Perbaiki"
           );
-        }
-        break;
-
-      case "quotesanime":
-      case "quoteanime":
-        {
-          let { quotesAnime } = require("./lib/scraper");
-          let anu = await quotesAnime();
-          result = anu[Math.floor(Math.random() * anu.length)];
-          let caption = `~_${result.quotes}_\n\nBy '${result.karakter}', ${result.anime}\n\n- ${result.up_at}`;
-          abot.sendMessage(m.chat, caption, { quoted: m });
         }
         break;
 
