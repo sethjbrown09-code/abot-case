@@ -1,5 +1,6 @@
 require("../config/setting");
 const fs = require("fs");
+const { BotUtils } = require("@bagah/whatsapp-lib");
 const chalk = require("chalk");
 const crypto = require("crypto");
 const { exec } = require("child_process");
@@ -848,6 +849,7 @@ module.exports = abot = async (abot, m) => {
         );
         m.reply(`Nomor ${yaki} Telah Di Hapus Dari Daftar Premium!!!`);
         break;
+
       case "listprem":
         if (!isCreator) return m.reply("```Only Owner!!!```");
         teksooo = "*List Owner*\n\n";
@@ -873,16 +875,9 @@ module.exports = abot = async (abot, m) => {
             "https://raw.githubusercontent.com/iamriz7/kopel_/main/kopel.json"
           );
           let random = anu[Math.floor(Math.random() * anu.length)];
-          abot.sendMessage(
-            m.chat,
-            { image: { url: random.male }, caption: `Couple Male` },
-            { quoted: fkontak }
-          );
-          abot.sendMessage(
-            m.chat,
-            { image: { url: random.female }, caption: `Couple Female` },
-            { quoted: fkontak }
-          );
+          abot.sendFile(m.chat, random.male, "", `Couple Male`, m);
+          abot.sendFile(m.chat, random.female, "", `Couple Female`, m);
+          BotUtils.delay(2000);
         }
         break;
 
