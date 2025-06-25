@@ -779,10 +779,7 @@ module.exports = abot = async (abot, m) => {
             return m.reply(
               `Kirim/Reply Image Dengan Caption ${prefix + command}`
             );
-          var medis = await abot.downloadAndSaveMediaMessage(
-            quoted,
-            "ppbot.jpeg"
-          );
+          var medis = await abot.saveMediaMessage(quoted);
           if (args[0] == `/full`) {
             var { img } = await generateProfilePicture(medis);
             await abot.query({
