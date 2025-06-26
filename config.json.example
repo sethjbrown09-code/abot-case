@@ -1,0 +1,8 @@
+{
+    "owner": "your_phone_number_here",
+    "owner_name": "your_name_here",
+    "pairing": {
+        "state": true,
+        "number": 6283865204595
+    }
+}
