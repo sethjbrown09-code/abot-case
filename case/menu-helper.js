@@ -1,133 +1,164 @@
 const fs = require("fs");
 
-const commandCategories = {
-  main: {
-    name: "Main Menu",
-    icon: "🏠",
-    commands: ["runtime", "menu", "allmenu", "groupmenu"],
-  },
-  ai: {
-    name: "AI Menu",
-    icon: "🤖",
-    commands: ["ai", "gemini", "remini", "blackbox"],
-  },
-  maker: {
-    name: "Maker Menu",
-    icon: "🎨",
-    commands: [
-      "toimg",
-      "tts",
-      "tourl",
-      "url",
-      "sticker",
-      "s",
-      "stickergif",
-      "sgif",
-      "smeme",
-      "stickmeme",
-    ],
-  },
-  group: {
-    name: "Group Menu",
-    icon: "👥",
-    commands: [
-      "gc",
-      "group",
-      "promote",
-      "demote",
-      "revoke",
-      "lgc",
-      "linkgc",
-      "k",
-      "kick",
-      "hidetag",
-      "tag",
-      "h",
-      "antilink",
-      "tagall",
-      "c",
-    ],
-  },
-  owner: {
-    name: "Owner Menu",
-    icon: "👑",
-    commands: ["soff", "son", "setppbot", "addprem", "delprem", "listprem"],
-  },
-  downloader: {
-    name: "Downloader Menu",
-    icon: "📥",
-    commands: [
-      "couple",
-      "ytmp3",
-      "ytmp4",
-      "twittervideo",
-      "ttnwm",
-      "tiktok",
-      "ttmp3",
-      "quotesanime",
-      "facebookdl",
-      "fbdl",
-      "igdl",
-      "tt",
-      "tiktoknowm",
-      "tt3",
-    ],
-  },
-  search: {
-    name: "Search Menu",
-    icon: "🔍",
-    commands: ["wikimedia", "tiktokstalk", "ytplay", "play", "randomwaifu"],
-  },
-  game: {
-    name: "Game Menu",
-    icon: "🎮",
-    commands: ["tebakkata", "tebakangka", "suit", "caklontong", "stopgame"],
-  },
+const categoryIcons = {
+  main: "🏠",
+  ai: "🤖",
+  maker: "🎨",
+  group: "👥",
+  owner: "👑",
+  downloader: "📥",
+  search: "🔍",
+  game: "🎮",
+  default: "📋",
 };
 
-const detectCommands = () => {
+const detectCommandsAndCategories = () => {
   const path = require("path");
   const commandFiles = [
     path.join(__dirname, "command.js"),
     path.join(__dirname, "ai-commands.js"),
     path.join(__dirname, "game-commands.js"),
   ];
-  const detectedCommands = {};
+
+  const categories = {};
+  let allCommands = [];
 
   commandFiles.forEach((file) => {
     try {
       if (fs.existsSync(file)) {
         const content = fs.readFileSync(file, "utf8");
+        const sections = content.split(/\/\/=+[^=]*Menu[^=]*=+\/\//i);
+        const categoryMatches =
+          content.match(/\/\/=+\s*([^=]*?Menu[^=]*?)\s*=+\/\//gi) || [];
 
-        const patterns = [
-          /case\s+["']([^"']+)["']:\s*{/g,
-          /case\s+["']([^"']+)["']:/g,
-          /case\s+"([^"]+)":/g,
-          /case\s+'([^']+)':/g,
-        ];
+        console.log(`📁 Scanning ${path.basename(file)}...`);
+        for (let i = 1; i < sections.length; i++) {
+          const section = sections[i];
+          const categoryHeader = categoryMatches[i - 1];
 
-        patterns.forEach((pattern) => {
-          let match;
-          while ((match = pattern.exec(content)) !== null) {
-            const command = match[1];
-            if (command && !detectedCommands[command]) {
-              detectedCommands[command] = true;
+          if (categoryHeader) {
+            const categoryNameMatch = categoryHeader.match(
+              /\/\/=+\s*([^=]*?)\s*=+\/\//i
+            );
+            if (categoryNameMatch) {
+              let categoryName = categoryNameMatch[1].trim().toLowerCase();
+              categoryName = categoryName.replace(/\s*menu\s*/gi, "").trim();
+              if (categoryName === "group menu") categoryName = "group";
+              const commandPatterns = [
+                /case\s+["']([^"']+)["']:\s*{/g,
+                /case\s+["']([^"']+)["']:/g,
+                /case\s+"([^"]+)":/g,
+                /case\s+'([^']+)':/g,
+              ];
+
+              const sectionCommands = [];
+              commandPatterns.forEach((pattern) => {
+                let match;
+                while ((match = pattern.exec(section)) !== null) {
+                  const command = match[1];
+                  if (command && !sectionCommands.includes(command)) {
+                    sectionCommands.push(command);
+                    if (!allCommands.includes(command)) {
+                      allCommands.push(command);
+                    }
+                  }
+                }
+              });
+
+              if (sectionCommands.length > 0) {
+                if (!categories[categoryName]) {
+                  categories[categoryName] = {
+                    name:
+                      categoryName.charAt(0).toUpperCase() +
+                      categoryName.slice(1) +
+                      " Menu",
+                    icon: categoryIcons[categoryName] || categoryIcons.default,
+                    commands: [],
+                  };
+                }
+                sectionCommands.forEach((cmd) => {
+                  if (!categories[categoryName].commands.includes(cmd)) {
+                    categories[categoryName].commands.push(cmd);
+                  }
+                });
+
+                console.log(
+                  `  🔹 ${categoryName}: ${
+                    sectionCommands.length
+                  } commands - ${sectionCommands.join(", ")}`
+                );
+              }
             }
           }
-        });
+        }
 
-        console.log(
-          `📁 Scanned ${file}: found ${
-            Object.keys(detectedCommands).length
-          } commands`
-        );
+        const foundCategories = Object.keys(categories).length;
+
+        if (
+          foundCategories === 0 ||
+          (file.includes("ai-commands.js") && !categories.ai)
+        ) {
+          const filename = path.basename(file, ".js");
+          let categoryName = "other";
+
+          if (filename.includes("ai")) {
+            categoryName = "ai";
+          } else if (filename.includes("game")) {
+            categoryName = "game";
+          }
+
+          const commandPatterns = [
+            /case\s+["']([^"']+)["']:\s*{/g,
+            /case\s+["']([^"']+)["']:/g,
+            /case\s+"([^"]+)":/g,
+            /case\s+'([^']+)':/g,
+          ];
+
+          const fileCommands = [];
+          commandPatterns.forEach((pattern) => {
+            let match;
+            while ((match = pattern.exec(content)) !== null) {
+              const command = match[1];
+              if (command && !fileCommands.includes(command)) {
+                fileCommands.push(command);
+                if (!allCommands.includes(command)) {
+                  allCommands.push(command);
+                }
+              }
+            }
+          });
+
+          if (fileCommands.length > 0) {
+            if (!categories[categoryName]) {
+              categories[categoryName] = {
+                name:
+                  categoryName.charAt(0).toUpperCase() +
+                  categoryName.slice(1) +
+                  " Menu",
+                icon: categoryIcons[categoryName] || categoryIcons.default,
+                commands: [],
+              };
+            }
+
+            fileCommands.forEach((cmd) => {
+              if (!categories[categoryName].commands.includes(cmd)) {
+                categories[categoryName].commands.push(cmd);
+              }
+            });
+          }
+        }
       }
     } catch (err) {
       console.log(`❌ Error reading ${file}:`, err.message);
     }
   });
 
-  return Object.keys(detectedCommands);
+  return { categories, allCommands };
+};
+
+const detectCommands = () => {
+  const { allCommands } = detectCommandsAndCategories();
+  return allCommands;
 };
 
 const generateMenu = (
@@ -139,8 +170,9 @@ const generateMenu = (
   runtime,
   ucapanWaktu
 ) => {
-  const allCommands = detectCommands();
-  console.log("🔍 Detected commands:", allCommands.length, allCommands);
+  const { categories, allCommands } = detectCommandsAndCategories();
+  console.log("🔍 Auto-detected categories:", Object.keys(categories));
+  console.log("🔍 Auto-detected commands:", allCommands.length, allCommands);
 
   const message = `${ucapanWaktu} ${pushname}
 
@@ -152,33 +184,28 @@ const generateMenu = (
 
 💫 Pilih kategori menu di bawah ini:`;
 
-  const categories = Object.entries(commandCategories)
+  const categoryList = Object.entries(categories)
     .map(([key, category]) => {
-      const availableCommands = category.commands.filter((cmd) =>
-        allCommands.includes(cmd)
-      );
       return {
         title: `${category.icon} ${category.name}`,
         rowId: `${isPrefix}menutype ${key}`,
-        description: `${availableCommands.length} commands tersedia`,
+        description: `${category.commands.length} commands tersedia`,
       };
     })
     .filter((cat) => !cat.description.includes("0 commands"));
 
-  return { message, categories };
+  return { message, categories: categoryList };
 };
 
 const generateCategoryMenu = (category, style, isPrefix) => {
-  const allCommands = detectCommands();
-  const categoryData = commandCategories[category];
+  const { categories } = detectCommandsAndCategories();
+  const categoryData = categories[category];
 
   if (!categoryData) {
     return null;
   }
 
-  const availableCommands = categoryData.commands.filter((cmd) =>
-    allCommands.includes(cmd)
-  );
+  const availableCommands = categoryData.commands;
 
   if (availableCommands.length === 0) {
     return `🚩 Tidak ada command tersedia untuk kategori ${categoryData.name}`;
@@ -248,7 +275,7 @@ const generateFullMenu = (
   runtime,
   ucapanWaktu
 ) => {
-  const allCommands = detectCommands();
+  const { categories, allCommands } = detectCommandsAndCategories();
 
   let print = `${ucapanWaktu} ${pushname}
 
@@ -262,10 +289,8 @@ const generateFullMenu = (
 
   print += "\n" + String.fromCharCode(8206).repeat(4001);
 
-  Object.entries(commandCategories).forEach(([key, category]) => {
-    const availableCommands = category.commands.filter((cmd) =>
-      allCommands.includes(cmd)
-    );
+  Object.entries(categories).forEach(([key, category]) => {
+    const availableCommands = category.commands;
 
     if (availableCommands.length > 0) {
       let categoryTitle = "";
@@ -331,8 +356,8 @@ const generateFullMenu = (
 };
 
 module.exports = {
-  commandCategories,
   detectCommands,
+  detectCommandsAndCategories,
   generateMenu,
   generateCategoryMenu,
   generateFullMenu,

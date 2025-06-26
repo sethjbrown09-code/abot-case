@@ -102,7 +102,8 @@ module.exports = async (
 
     case "allmenu":
       {
-        const allCommands = menuHelper.detectCommands();
+        const { categories, allCommands } =
+          menuHelper.detectCommandsAndCategories();
         let fullMenu = `${ucapanWaktu} ${pushname}
 
 🤖 *BOT INFORMATION*
@@ -113,24 +114,16 @@ module.exports = async (
 
 📋 *SEMUA MENU*\n`;
 
-        Object.entries(menuHelper.commandCategories).forEach(
-          ([key, category]) => {
-            const availableCommands = category.commands.filter((cmd) =>
-              allCommands.includes(cmd)
-            );
-
-            if (availableCommands.length > 0) {
-              fullMenu += `\n${
-                category.icon
-              } *${category.name.toUpperCase()}*\n`;
-              fullMenu +=
-                availableCommands
-                  .sort()
-                  .map((cmd) => `   ◦ ${prefix}${cmd}`)
-                  .join("\n") + "\n";
-            }
+        Object.entries(categories).forEach(([key, category]) => {
+          if (category.commands.length > 0) {
+            fullMenu += `\n${category.icon} *${category.name.toUpperCase()}*\n`;
+            fullMenu +=
+              category.commands
+                .sort()
+                .map((cmd) => `   ◦ ${prefix}${cmd}`)
+                .join("\n") + "\n";
           }
-        );
+        });
 
         fullMenu += "\n© abot - WhatsApp Bot";
         abot.sendMessage(m.chat, { text: fullMenu }, { quoted: m });

@@ -6,6 +6,8 @@ module.exports = async (
   { command, args, text, quoted, mime, from, pushname, isCreator, prefix, q }
 ) => {
   switch (command) {
+    //================ AI Menu ==================//
+
     case "ai":
     case "chatgpt":
       {
