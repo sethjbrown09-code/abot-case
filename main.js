@@ -20,7 +20,7 @@ const store = makeStore({
   logger: pino().child({ level: "silent", stream: "store" }),
 });
 
-const config = require("./config/config.json");
+const config = require("./config.json");
 
 global.API = (name, path = "/", query = {}, apikeyqueryname) =>
   (name in global.APIs ? global.APIs[name] : name) +
