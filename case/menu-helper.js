@@ -14,11 +14,7 @@ const categoryIcons = {
 
 const detectCommandsAndCategories = () => {
   const path = require("path");
-  const commandFiles = [
-    path.join(__dirname, "command.js"),
-    path.join(__dirname, "ai-commands.js"),
-    path.join(__dirname, "game-commands.js"),
-  ];
+  const commandFiles = [path.join(__dirname, "command.js")];
 
   const categories = {};
   let allCommands = [];
@@ -31,7 +27,6 @@ const detectCommandsAndCategories = () => {
         const categoryMatches =
           content.match(/\/\/=+\s*([^=]*?Menu[^=]*?)\s*=+\/\//gi) || [];
 
-        console.log(`📁 Scanning ${path.basename(file)}...`);
         for (let i = 1; i < sections.length; i++) {
           const section = sections[i];
           const categoryHeader = categoryMatches[i - 1];
@@ -44,6 +39,14 @@ const detectCommandsAndCategories = () => {
               let categoryName = categoryNameMatch[1].trim().toLowerCase();
               categoryName = categoryName.replace(/\s*menu\s*/gi, "").trim();
               if (categoryName === "group menu") categoryName = "group";
+              if (categoryName === "owner menu") categoryName = "owner";
+              if (categoryName === "downloader menu")
+                categoryName = "downloader";
+              if (categoryName === "ai menu") categoryName = "ai";
+              if (categoryName === "game menu") categoryName = "game";
+              if (categoryName === "maker menu") categoryName = "maker";
+              if (categoryName === "main menu") categoryName = "main";
+
               const commandPatterns = [
                 /case\s+["']([^"']+)["']:\s*{/g,
                 /case\s+["']([^"']+)["']:/g,
@@ -76,75 +79,14 @@ const detectCommandsAndCategories = () => {
                     commands: [],
                   };
                 }
+
                 sectionCommands.forEach((cmd) => {
                   if (!categories[categoryName].commands.includes(cmd)) {
                     categories[categoryName].commands.push(cmd);
                   }
                 });
-
-                console.log(
-                  `  🔹 ${categoryName}: ${
-                    sectionCommands.length
-                  } commands - ${sectionCommands.join(", ")}`
-                );
               }
             }
-          }
-        }
-
-        const foundCategories = Object.keys(categories).length;
-
-        if (
-          foundCategories === 0 ||
-          (file.includes("ai-commands.js") && !categories.ai)
-        ) {
-          const filename = path.basename(file, ".js");
-          let categoryName = "other";
-
-          if (filename.includes("ai")) {
-            categoryName = "ai";
-          } else if (filename.includes("game")) {
-            categoryName = "game";
-          }
-
-          const commandPatterns = [
-            /case\s+["']([^"']+)["']:\s*{/g,
-            /case\s+["']([^"']+)["']:/g,
-            /case\s+"([^"]+)":/g,
-            /case\s+'([^']+)':/g,
-          ];
-
-          const fileCommands = [];
-          commandPatterns.forEach((pattern) => {
-            let match;
-            while ((match = pattern.exec(content)) !== null) {
-              const command = match[1];
-              if (command && !fileCommands.includes(command)) {
-                fileCommands.push(command);
-                if (!allCommands.includes(command)) {
-                  allCommands.push(command);
-                }
-              }
-            }
-          });
-
-          if (fileCommands.length > 0) {
-            if (!categories[categoryName]) {
-              categories[categoryName] = {
-                name:
-                  categoryName.charAt(0).toUpperCase() +
-                  categoryName.slice(1) +
-                  " Menu",
-                icon: categoryIcons[categoryName] || categoryIcons.default,
-                commands: [],
-              };
-            }
-
-            fileCommands.forEach((cmd) => {
-              if (!categories[categoryName].commands.includes(cmd)) {
-                categories[categoryName].commands.push(cmd);
-              }
-            });
           }
         }
       }
@@ -171,9 +113,6 @@ const generateMenu = (
   ucapanWaktu
 ) => {
   const { categories, allCommands } = detectCommandsAndCategories();
-  console.log("🔍 Auto-detected categories:", Object.keys(categories));
-  console.log("🔍 Auto-detected commands:", allCommands.length, allCommands);
-
   const message = `${ucapanWaktu} ${pushname}
 
 🤖 *BOT INFORMATION*
