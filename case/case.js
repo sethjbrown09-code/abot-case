@@ -144,41 +144,6 @@ module.exports = abot = async (abot, m) => {
     }
 
     //=================================================//
-    var sticWait = () => {
-      ano = fs.readFileSync("./function/image/wait.webp");
-      abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: "test",
-        author: "test",
-      });
-    };
-    var sticAdmin = () => {
-      ano = fs.readFileSync("./function/image/BotAdman.webp");
-      abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: "test",
-        author: "test",
-      });
-    };
-    var sticOwner = () => {
-      ano = fs.readFileSync("./function/image/owner.webp");
-      abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: "test",
-        author: "test",
-      });
-    };
-    var sticSukses = () => {
-      ano = fs.readFileSync("./function/image/SuksesCok.webp");
-      abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: "test",
-        author: "test",
-      });
-    };
-    var sticBanLu = (hehe) => {
-      ano = fs.readFileSync("./function/image/BanLu.webp");
-      abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: "test",
-        author: "test",
-      });
-    };
     var groupon = (hehe) => {
       ano = fs.readFileSync("./function/image/groupon.webp");
       abot.sendImageAsSticker(m.chat, ano, m, {
@@ -284,13 +249,6 @@ module.exports = abot = async (abot, m) => {
         tanggal,
         ucapanWaktu,
         repPy,
-        sticWait,
-        sticAdmin,
-        sticOwner,
-        sticSukses,
-        sticBanLu,
-        groupon,
-        SiGroupadmin,
         q,
       });
 

@@ -8,8 +8,8 @@ const {
   jsonformat,
   getRandom,
 } = require("../lib/functions");
-const moment = require("moment-timezone");
 const menuHelper = require("./menu-helper");
+const { buffer, json } = require("stream/consumers");
 
 module.exports = async (
   abot,
@@ -33,13 +33,6 @@ module.exports = async (
     tanggal,
     ucapanWaktu,
     repPy,
-    sticWait,
-    sticAdmin,
-    sticOwner,
-    sticSukses,
-    sticBanLu,
-    groupon,
-    SiGroupadmin,
     q,
   }
 ) => {
@@ -168,7 +161,7 @@ module.exports = async (
           throw `Kirim/Reply Image Dengan Caption ${prefix + command}`;
         if (!/image/.test(mime))
           throw `Kirim/Reply Image Dengan Caption ${prefix + command}`;
-        sticWait(from);
+
         let { TelegraPh } = require("../lib/uploader");
         let media = await abot.downloadAndSaveMediaMessage(quoted);
         let anu = await TelegraPh(media);
@@ -177,9 +170,7 @@ module.exports = async (
             text: `${anu}\n\n 🖨️ Nih Link Nya`,
           });
         } catch (e) {
-          m.reply(
-            `Mohon Maaf Kemungkinan Server Telegraph Sedang Eror\nCoba Lakukan Beberapa Menit Lagi`
-          );
+          abot.reply(m.chat, global.status.error, m);
         }
       }
       break;
@@ -193,11 +184,11 @@ module.exports = async (
         if (!/webp/.test(mime) && /image/.test(mime)) {
           atas = text.split("|")[0] ? text.split("|")[0] : "-";
           bawah = text.split("|")[1] ? text.split("|")[1] : "-";
-          mee = await quoted.download();
-          mem = await scrap.uploadImageV2(mee);
+          buffer = await quoted.download();
+          json = await tools.uploadImage(buffer);
           let smeme = `https://api.memegen.link/images/custom/${encodeURIComponent(
             atas
-          )}/${encodeURIComponent(bawah)}.png?background=${mem.data.url}`;
+          )}/${encodeURIComponent(bawah)}.png?background=${json.result}`;
           await abot.sendSticker(m.chat, smeme, m, {
             packname: global.packname,
             author: global.author,
@@ -243,9 +234,10 @@ module.exports = async (
 
     case "promote":
       {
-        if (!m.isGroup) throw groupon(from);
-        if (!isBotAdmins) throw sticAdmin(from);
-        if (!isAdmins) throw sticAdmin(from);
+        if (!m.isGroup) throw abot.reply(m.chat, global.status.group, m);
+        if (!isBotAdmins) throw abot.reply(m.chat, global.status.botAdmin, m);
+        if (!isGroupAdmins) throw abot.reply(m.chat, global.status.admin, m);
+        if (!isAdmins) throw abot.reply(m.chat, global.status.admin, m);
         let users = m.mentionedJid[0]
           ? m.mentionedJid
           : m.quoted
@@ -260,9 +252,9 @@ module.exports = async (
 
     case "demote":
       {
-        if (!m.isGroup) throw groupon(from);
-        if (!isBotAdmins) throw sticAdmin(from);
-        if (!isAdmins) throw sticAdmin(from);
+        if (!m.isGroup) throw abot.reply(m.chat, global.status.group, m);
+        if (!isBotAdmins) throw abot.reply(m.chat, global.status.botAdmin, m);
+        if (!isAdmins) throw abot.reply(m.chat, global.status.admin, m);
         let users = m.mentionedJid[0]
           ? m.mentionedJid
           : m.quoted
@@ -277,7 +269,7 @@ module.exports = async (
 
     case "leave":
       {
-        if (!isCreator) throw sticOwner(from);
+        if (!isCreator) throw abot.reply(m.chat, global.status.owner, m);
         await abot
           .groupLeave(m.chat)
           .then((res) => m.reply(jsonformat(res)))
@@ -318,8 +310,9 @@ module.exports = async (
       break;
 
     case "tagall":
-      if (!isGroupAdmins && !isCreator) return sticAdmin(from);
-      if (!q) return m.reply(`Teksnya apa?`);
+      if (!isGroupAdmins && !isCreator)
+        return abot.reply(m.chat, global.status.admin, m);
+      if (!q) return abot.reply(m.chat, `Teksnya apa?`, m);
       let teks_tagall = `══✪〘 *Tag Semua* 〙✪══\n\n${q ? q : ""}\n\n`;
       for (let mem of participants) {
         teks_tagall += `⚘ @${mem.id.split("@")[0]}\n`;
@@ -343,8 +336,8 @@ module.exports = async (
     case "linkgc":
     case "lgc":
       {
-        if (!m.isGroup) throw groupon(from);
-        if (!isBotAdmins) throw SiGroupadmin(from);
+        if (!m.isGroup) throw abot.reply(m.chat, global.status.group, m);
+        if (!isBotAdmins) throw abot.reply(m.chat, global.status.botAdmin, m);
         await m.reply(
           "https://chat.whatsapp.com/" + (await abot.groupInviteCode(m.chat))
         );

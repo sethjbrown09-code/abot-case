@@ -14,12 +14,11 @@ const pino = require("pino");
 const fs = require("fs");
 const chalk = require("chalk");
 const spinnies = new (require("spinnies"))();
+const config = require("./config.json");
 
 const store = makeStore({
   logger: pino().child({ level: "silent", stream: "store" }),
 });
-
-const config = require("./config.json");
 
 global.API = (name, path = "/", query = {}, apikeyqueryname) =>
   (name in global.APIs ? global.APIs[name] : name) +
