@@ -2,7 +2,7 @@ require("../config/setting");
 const fs = require("fs");
 const chalk = require("chalk");
 const moment = require("moment-timezone");
-const Jimp = require("jimp");
+const config = require("../config.json");
 const util = require("util");
 const { getBuffer } = require("../lib/functions");
 
@@ -52,7 +52,7 @@ module.exports = abot = async (abot, m) => {
     const args = body.trim().split(/ +/).slice(1);
     const pushname = m.pushName || "No Name";
     const botNumber = await abot.decodeJid(abot.user.id);
-    const isCreator = [botNumber, ...global.ownerNumber]
+    const isCreator = [botNumber, ...config.owner]
       .map((v) => v.replace(/[^0-9]/g, "") + "@s.whatsapp.net")
       .includes(m.sender);
     const itsMe = m.sender == botNumber ? true : false;
