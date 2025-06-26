@@ -1,4 +1,4 @@
-require("../config/setting");
+require("../lib/system/config.js");
 const fs = require("fs");
 const chalk = require("chalk");
 const moment = require("moment-timezone");
@@ -147,50 +147,50 @@ module.exports = abot = async (abot, m) => {
     var sticWait = () => {
       ano = fs.readFileSync("./function/image/wait.webp");
       abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: global.packname,
-        author: global.author,
+        packname: "test",
+        author: "test",
       });
     };
     var sticAdmin = () => {
       ano = fs.readFileSync("./function/image/BotAdman.webp");
       abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: global.packname,
-        author: global.author,
+        packname: "test",
+        author: "test",
       });
     };
     var sticOwner = () => {
       ano = fs.readFileSync("./function/image/owner.webp");
       abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: global.packname,
-        author: global.author,
+        packname: "test",
+        author: "test",
       });
     };
     var sticSukses = () => {
       ano = fs.readFileSync("./function/image/SuksesCok.webp");
       abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: global.packname,
-        author: global.author,
+        packname: "test",
+        author: "test",
       });
     };
     var sticBanLu = (hehe) => {
       ano = fs.readFileSync("./function/image/BanLu.webp");
       abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: global.packname,
-        author: global.author,
+        packname: "test",
+        author: "test",
       });
     };
     var groupon = (hehe) => {
       ano = fs.readFileSync("./function/image/groupon.webp");
       abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: global.packname,
-        author: global.author,
+        packname: "test",
+        author: "test",
       });
     };
     var SiGroupadmin = (hehe) => {
       ano = fs.readFileSync("./function/image/SiGroupadmin.webp");
       abot.sendImageAsSticker(m.chat, ano, m, {
-        packname: global.packname,
-        author: global.author,
+        packname: "test",
+        author: "test",
       });
     };
 
@@ -217,40 +217,11 @@ module.exports = abot = async (abot, m) => {
     moment.tz.setDefault("Asia/Jakarta").locale("id");
     //=================================================//
 
-    const fkontak = {
-      key: {
-        participant: `0@s.whatsapp.net`,
-        ...(m.chat ? { remoteJid: `status@broadcast` } : {}),
-      },
-      message: {
-        contactMessage: {
-          displayName: "Abott",
-          vcard: `BEGIN:VCARD\nVERSION:3.0\nN:XL;AADad\nFN:Abott\nitem1.TEL;waid=0:0\nitem1.X-ABLabel:Ponsel\nEND:VCARD`,
-          jpegThumbnail: thumb,
-          thumbnail: thumb,
-          sendEphemeral: true,
-        },
-      },
-    };
-    const reply = (teks) => {
-      abot.sendMessage(
-        m.chat,
-        {
-          text: teks,
-          contextInfo: {
-            forwardingScore: 9999999,
-            isForwarded: true,
-          },
-        },
-        { quoted: repPy }
-      );
-    };
-
     const repPy = {
       key: {
         remoteJid: "0@s.whatsapp.net",
         fromMe: false,
-        id: `${global.namabot}`,
+        id: `${global.botname}`,
         participant: "0@s.whatsapp.net",
       },
       message: {
@@ -260,7 +231,7 @@ module.exports = abot = async (abot, m) => {
           requestFrom: "0@s.whatsapp.net",
           noteMessage: {
             extendedTextMessage: {
-              text: `${global.namabot}`,
+              text: `${global.botname}`,
             },
           },
           expiryTimestamp: 999999999,

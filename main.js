@@ -1,4 +1,3 @@
-require("./config/setting");
 const {
   createSocket,
   serialize,
@@ -55,7 +54,7 @@ global.db.data = {
 };
 
 async function startabot() {
-  const { state, saveCreds } = await useMultiFileAuthState(global.sessionName);
+  const { state, saveCreds } = await useMultiFileAuthState("session");
   let { version, isLatest } = await fetchLatestBaileysVersion();
   const options = {
     auth: state,
