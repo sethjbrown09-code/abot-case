@@ -121,13 +121,13 @@ docker run -d --name abot-md-container abot-md
 
 ```javascript
 // Bot Owner Configuration
-global.owner = ["your_phone_number"]; // Your phone number without +
+global.owner = ["+639641001139"]; // Your phone number without +
 global.ownerNumber = ["your_number@s.whatsapp.net"];
 global.nomerOwner = "your_phone_number";
 
 // Bot Information
 global.namabotnya = "YourBotName"; // Bot display name
-global.namaownernya = "YourName"; // Your name
+global.namaownernya = "sethinoo"; // Your name
 
 // OpenAI Configuration (for ChatGPT features)
 global.keyopenai = "your_openai_api_key_here"; // Get from https://platform.openai.com/
@@ -145,9 +145,9 @@ Create a `.env` file in the root directory:
 
 ```env
 # Bot Configuration
-BOT_NAME=Abot-MD
-OWNER_NAME=YourName
-OWNER_NUMBER=your_phone_number
+BOT_NAME=sethinoo
+OWNER_NAME=seth
+OWNER_NUMBER=639641001139
 
 # API Keys
 OPENAI_API_KEY=your_openai_api_key
@@ -338,3 +338,4 @@ This project is licensed under the **ISC License** - see the [LICENSE](LICENSE) 
 _If this project helped you, please consider giving it a ⭐_
 
 </div>
+
